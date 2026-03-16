@@ -4,15 +4,20 @@ import asyncHandler from "../utils/asyncHandler.js";
 
 export const protect = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
+  const bearerToken =
+    authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null;
+  const cookieToken = req.cookies?.token;
+  const token = bearerToken || cookieToken;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
     return res.status(401).json({
       success: false,
-      message: "Authorization token is required",
+      message: "Authentication token is required",
     });
   }
 
-  const token = authHeader.split(" ")[1];
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const user = await User.findById(decoded.id).select("_id name email");
 
