@@ -1,23 +1,27 @@
 # Collabzz Team Task Manager API
 
 
+
 ## Features
 
-- User registration and login with hashed passwords
-- JWT-protected task routes
-- Task CRUD operations
-- Creator-only update and delete permissions
-- Status validation for `todo`, `in-progress`, and `done`
-- Filtering by status
-- Bonus: pagination and title search with query params
+- User registration and login
+- Password hashing with `bcryptjs`
+- JWT-based authentication
+- Protected task routes
+- Create, read, update, and delete tasks
+- Only task creators can update or delete their tasks
+- Task status validation: `todo`, `in-progress`, `done`
+- Optional status filtering on `GET /tasks`
+- Bonus: pagination and title search
 
 ## Tech Stack
 
 - Node.js
 - Express
 - MongoDB with Mongoose
-- JWT for authentication
-- bcryptjs for password hashing
+- JWT
+- bcryptjs
+- cookie-parser
 
 ## Project Structure
 
@@ -33,41 +37,46 @@ src/
   utils/
 ```
 
-## Setup Instructions
+## Setup
 
-1. Clone the repository.
-2. Install dependencies:
+1. Install dependencies
 
 ```bash
 npm install
 ```
 
-3. Create a `.env` file using `.env.example`:
+2. Create a `.env` file
 
 ```env
 PORT=8000
 MONGODB_URI=mongodb://127.0.0.1:27017/collabzz
-JWT_SECRET=your_super_secret_jwt_key
+JWT_SECRET=your_secret_key
 ```
 
-4. Start the server:
+3. Run the server
 
 ```bash
 npm run dev
 ```
 
-The API will run at `http://localhost:8000`.
+Server runs at `http://localhost:8000`
 
-## API Endpoints
+## Authentication
+
+`POST /auth/register` and `POST /auth/login` return a JWT token in the response.
+
+Protected task routes accept either:
+
+- `Authorization: Bearer <token>`
+- or the `token` cookie automatically set on login/register
+
+## Routes
 
 ### Auth
 
-#### Register
+`POST /auth/register`
 
-- Method: `POST`
-- Route: `/auth/register`
-
-Sample request:
+Sample body:
 
 ```json
 {
@@ -77,29 +86,9 @@ Sample request:
 }
 ```
 
-Sample response:
+`POST /auth/login`
 
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "user": {
-      "id": "USER_ID",
-      "name": "Saurabh",
-      "email": "saurabh@example.com"
-    },
-    "token": "JWT_TOKEN"
-  }
-}
-```
-
-#### Login
-
-- Method: `POST`
-- Route: `/auth/login`
-
-Sample request:
+Sample body:
 
 ```json
 {
@@ -108,123 +97,67 @@ Sample request:
 }
 ```
 
-Sample response:
-
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "JWT_TOKEN",
-    "user": {
-      "id": "USER_ID",
-      "name": "Saurabh",
-      "email": "saurabh@example.com"
-    }
-  }
-}
-```
-
 ### Tasks
 
-All task routes require this header:
+`POST /tasks`
 
-```text
-Authorization: Bearer JWT_TOKEN
-```
-
-#### Create Task
-
-- Method: `POST`
-- Route: `/tasks`
-
-Sample request:
+Sample body:
 
 ```json
 {
   "title": "Build API",
-  "description": "Complete the internship assignment",
+  "description": "Complete internship assignment",
   "status": "todo",
-  "assignedTo": "USER_ID"
+  "assignedTo": "OPTIONAL_USER_ID"
 }
 ```
 
-#### Get All Tasks
+Notes:
 
-- Method: `GET`
-- Route: `/tasks`
-- Optional query params:
-  - `status=todo`
-  - `search=api`
-  - `page=1`
-  - `limit=10`
+- `createdBy` is set automatically from the logged-in user
+- `assignedTo` is optional
 
-Example:
+`GET /tasks`
 
-```text
-GET /tasks?status=todo&search=api&page=1&limit=10
-```
+Optional query params:
 
-#### Get Task By ID
+- `status=todo`
+- `search=api`
+- `page=1`
+- `limit=10`
 
-- Method: `GET`
-- Route: `/tasks/:id`
+`GET /tasks/:id`
 
-#### Update Task
+`PUT /tasks/:id`
 
-- Method: `PUT`
-- Route: `/tasks/:id`
-- Only the creator can update
-
-Sample request:
+Sample body:
 
 ```json
 {
   "title": "Build final API",
-  "description": "Add README and polish responses",
+  "description": "Polish documentation",
   "status": "in-progress"
 }
 ```
 
-#### Delete Task
+`DELETE /tasks/:id`
 
-- Method: `DELETE`
-- Route: `/tasks/:id`
-- Only the creator can delete
+## Business Rules
 
-Sample delete response:
-
-```json
-{
-  "success": true,
-  "message": "Task deleted successfully"
-}
-```
-
-## Business Rules Implemented
-
-- Passwords are hashed before being stored
-- JWT is required on all task routes
-- Task status only accepts `todo`, `in-progress`, and `done`
-- Only the task creator can update or delete the task
-
-## Notes
-
-- `GET /tasks` returns paginated results sorted by latest created task first
-- `assignedTo` is optional, but if provided it must be a valid existing user
-- Invalid task IDs and invalid status values return proper error responses
+- Passwords are hashed before storing
+- All task routes are protected
+- Status only allows `todo`, `in-progress`, `done`
+- Only the creator can update or delete a task
 
 ## Postman Collection
 
-A ready-to-import Postman collection is included in the repository:
+The repo includes:
 
 `Collabzz.postman_collection.json`
 
 ## Run Checklist
 
-- Add environment variables
-- Ensure MongoDB is running locally or provide a MongoDB Atlas URI
+- Add `.env`
+- Run MongoDB
 - Run `npm install`
 - Run `npm run dev`
-
-

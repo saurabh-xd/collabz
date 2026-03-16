@@ -46,8 +46,8 @@ export const createTask = asyncHandler(async (req, res) => {
   }
 
   const task = await Task.create({
-    title: title,
-    description: description,
+    title: title.trim(),
+    description: description?.trim() || "",
     status: status || "todo",
     assignedTo: assignedTo || null,
     createdBy: req.user.id,
